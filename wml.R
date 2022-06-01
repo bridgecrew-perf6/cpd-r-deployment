@@ -4,10 +4,16 @@ library(jsonlite)
 
 VERSION <- "2021-06-24"
 
-getHeaders <- function(api_key, base_url) {
+httr::set_config(httr::config(ssl_verifypeer = FALSE, ssl_verifyhost = FALSE))
+
+
+getHeaders <- function(wml_credentials) {
+  username <- wml_credentials$username
+  api_key <- wml_credentials$api_key
+  base_url <- wml_credentials$base_url
   headers <- c("cache-control"="no-cache", "Content-Type"="application/json")
   url <- stringr::str_interp("${base_url}/icp4d-api/v1/authorize")
-  body <- stringr::str_interp('{"username":"admin","api_key":"${api_key}"}')
+  body <- stringr::str_interp('{"username":"${username}","api_key":"${api_key}"}')
   r <- POST(
     url,
     add_headers(
@@ -22,8 +28,9 @@ getHeaders <- function(api_key, base_url) {
 }
 
 
-createAsset <- function(file_name, file_path, space_id, api_key, base_url) {
-  headers <- getHeaders(api_key, base_url)
+createAsset <- function(file_name, file_path, space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  headers <- getHeaders(wml_credentials)
   url <- stringr::str_interp("${base_url}/v2/assets")
   query <- list(version=VERSION, space_id=space_id)
   asset_meta <- stringr::str_interp('{"metadata": {"name": "${file_name}", "asset_type": "data_asset", "origin_country": "us", "asset_category": "USER"}, "entity": {"data_asset": {"mime_type": "application/octet-stream"}}}')
@@ -70,8 +77,9 @@ createAsset <- function(file_name, file_path, space_id, api_key, base_url) {
 }
 
 
-downloadAsset <- function(asset_uid, file_name, space_id, api_key, base_url) {
-  headers <- getHeaders(api_key, base_url)
+downloadAsset <- function(asset_uid, file_name, space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  headers <- getHeaders(wml_credentials)
   url <- stringr::str_interp("${base_url}/v2/assets/${asset_uid}")
   query <- list(version=VERSION, space_id=space_id)
   r <- GET(
@@ -98,8 +106,9 @@ downloadAsset <- function(asset_uid, file_name, space_id, api_key, base_url) {
 }
 
 
-listAssets <- function(space_id, api_key, base_url) {
-  headers <- getHeaders(api_key, base_url)
+listAssets <- function(space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  headers <- getHeaders(wml_credentials)
   url <- stringr::str_interp("${base_url}/v2/asset_types/data_asset/search")
   query <- list(version=VERSION, space_id=space_id)
   body <- stringr::str_interp('{"query": "*:*"}')
@@ -124,8 +133,9 @@ listAssets <- function(space_id, api_key, base_url) {
 }
 
 
-listDeployments <- function(space_id, api_key, base_url) {
-  headers <- getHeaders(api_key, base_url)
+listDeployments <- function(space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  headers <- getHeaders(wml_credentials)
   url <- stringr::str_interp("${base_url}/ml/v4/deployments")
   query <- list(version=VERSION, space_id=space_id)
   r <- GET(
@@ -145,8 +155,9 @@ listDeployments <- function(space_id, api_key, base_url) {
 }
 
 
-createDeployment <- function(config, space_id, api_key, base_url) {
-  deployments <- listDeployments(space_id=space_id, api_key=api_key)
+createDeployment <- function(config, space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  deployments <- listDeployments(space_id=space_id, wml_credentials=wml_credentials)
   deployment_id <- deployments[['r helper deployment']]
   uuid <- UUIDgenerate()
   headers <- getHeaders(api_key, base_url)
@@ -170,8 +181,9 @@ createDeployment <- function(config, space_id, api_key, base_url) {
 }
 
 
-score <- function(payload, deployment_name, space_id, api_key, base_url) {
-  deployments <- listDeployments(space_id=space_id, api_key=api_key)
+score <- function(payload, deployment_name, space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  deployments <- listDeployments(space_id=space_id, wml_credentials=wml_credentials)
   deployment_id <- deployments[[deployment_name]]
   headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/ml/v4/deployments/${deployment_id}/predictions")
