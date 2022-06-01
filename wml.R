@@ -23,7 +23,7 @@ getHeaders <- function(api_key, base_url) {
 
 
 createAsset <- function(file_name, file_path, space_id, api_key, base_url) {
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/v2/assets")
   query <- list(version=VERSION, space_id=space_id)
   asset_meta <- stringr::str_interp('{"metadata": {"name": "${file_name}", "asset_type": "data_asset", "origin_country": "us", "asset_category": "USER"}, "entity": {"data_asset": {"mime_type": "application/octet-stream"}}}')
@@ -71,7 +71,7 @@ createAsset <- function(file_name, file_path, space_id, api_key, base_url) {
 
 
 downloadAsset <- function(asset_uid, file_name, space_id, api_key, base_url) {
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/v2/assets/${asset_uid}")
   query <- list(version=VERSION, space_id=space_id)
   r <- GET(
@@ -99,7 +99,7 @@ downloadAsset <- function(asset_uid, file_name, space_id, api_key, base_url) {
 
 
 listAssets <- function(space_id, api_key, base_url) {
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/v2/asset_types/data_asset/search")
   query <- list(version=VERSION, space_id=space_id)
   body <- stringr::str_interp('{"query": "*:*"}')
@@ -125,7 +125,7 @@ listAssets <- function(space_id, api_key, base_url) {
 
 
 listDeployments <- function(space_id, api_key, base_url) {
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/ml/v4/deployments")
   query <- list(version=VERSION, space_id=space_id)
   r <- GET(
@@ -149,7 +149,7 @@ createDeployment <- function(config, space_id, api_key, base_url) {
   deployments <- listDeployments(space_id=space_id, api_key=api_key)
   deployment_id <- deployments[['r helper deployment']]
   uuid <- UUIDgenerate()
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/ml/v4/deployment_jobs")
   query <- list(version=VERSION, space_id=space_id)
   body <- stringr::str_interp('{
@@ -173,7 +173,7 @@ createDeployment <- function(config, space_id, api_key, base_url) {
 score <- function(payload, deployment_name, space_id, api_key, base_url) {
   deployments <- listDeployments(space_id=space_id, api_key=api_key)
   deployment_id <- deployments[[deployment_name]]
-  headers <- getHeaders(api_key)
+  headers <- getHeaders(api_key, base_url)
   url <- stringr::str_interp("${base_url}/ml/v4/deployments/${deployment_id}/predictions")
   query <- list(version=VERSION)
   body <- stringr::str_interp('{"input_data": [{"values": [{"inputs": [{"Sepal.Length": 5.1, "Sepal.Width": 3.5, "Petal.Length": 1.4, "Petal.Width": 0.2}]}]}]}')
