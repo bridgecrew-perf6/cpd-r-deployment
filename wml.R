@@ -45,8 +45,8 @@ createAsset <- function(file_name, file_path, space_id, wml_credentials) {
       query=query
     )
   }
-
-
+  
+  
   asset_meta <- stringr::str_interp('{"metadata": {"name": "${file_name}", "asset_type": "data_asset", "origin_country": "us", "asset_category": "USER"}, "entity": {"data_asset": {"mime_type": "application/octet-stream"}}}')
   r <- POST(
     url,
@@ -166,6 +166,28 @@ listDeployments <- function(space_id, wml_credentials) {
   }
   
   return (l)
+}
+
+
+getConnection <- function(name, space_id, wml_credentials) {
+  base_url <- wml_credentials$base_url
+  headers <- getHeaders(wml_credentials)
+  url <- stringr::str_interp("${base_url}/v2/connections")
+  query <- list(version=VERSION, space_id=space_id)
+  r <- GET(
+    url,
+    add_headers(
+      .headers = headers
+    ),
+    query=query
+  )
+  
+  l <- list()
+  for (x in content(r)$resources) {
+    l[[ x$entity$name ]] = x$entity$properties
+  }
+  
+  return (l[[name]])
 }
 
 
