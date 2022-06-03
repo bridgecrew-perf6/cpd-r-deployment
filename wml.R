@@ -33,6 +33,20 @@ createAsset <- function(file_name, file_path, space_id, wml_credentials) {
   headers <- getHeaders(wml_credentials)
   url <- stringr::str_interp("${base_url}/v2/assets")
   query <- list(version=VERSION, space_id=space_id)
+  assets <- listAssets(space_id=space_id, wml_credentials=wml_credentials)
+  
+  
+  if (file_name %in% names(assets)) {
+    r <- DELETE(
+      stringr::str_interp("${url}/${assets[[file_name]]}"),
+      add_headers(
+        .headers = headers
+      ),
+      query=query
+    )
+  }
+
+
   asset_meta <- stringr::str_interp('{"metadata": {"name": "${file_name}", "asset_type": "data_asset", "origin_country": "us", "asset_category": "USER"}, "entity": {"data_asset": {"mime_type": "application/octet-stream"}}}')
   r <- POST(
     url,
